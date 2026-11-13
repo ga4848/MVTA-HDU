@@ -1,27 +1,5 @@
 # 回形针识别计数
 
-传统机器视觉算法。使用 C++17 实现全部像素处理，Windows 自带 GDI+ 负责图片读取、绘制和保存。
-
-## 在 VS 中运行
-
-1. 使用 Visual Studio 2022，安装“使用 C++ 的桌面开发”和 Windows 10/11 SDK。
-2. 打开 `PaperclipCounter.sln`，选择 `Release | x64`。
-3. 按 `Ctrl+F5`：项目已经配置样例输入、输出目录及自动显示结果图。
-4. `output/04_result.png` 显示每个目标的矩形框、编号和总数。
-
-已具备编译环境。也可双击“运行示例.cmd”，或执行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1`。
-
-## 更换图片
-
-在项目属性 → 配置属性 → 调试 → 命令参数中填写图片路径和输出目录；路径含空格或中文时加双引号。或在 PowerShell 执行：
-
-```powershell
-.\bin\Release\PaperclipCounter.exe "images\sample.png" "output" --show
-.\bin\Release\PaperclipCounter.exe "D:\图片\待计数.jpg" "output_other" --show
-```
-
-输入支持 PNG、JPEG、BMP 等 GDI+ 支持的格式。命令行 `--help` 查看参数。图像按存储像素处理，不应用 EXIF 方向。无参数运行默认读取当前工作目录的 `images/sample.png`。
-
 ## 算法与参数
 
 1. 转灰度：整数近似 `0.299 R + 0.587 G + 0.114 B`。
@@ -41,20 +19,3 @@
 ```
 
 `--threshold` 为 0～255，省略则自动计算。`--min-area-ratio` 是最小面积比例，取值大于 0 且小于 0.15。`--show` 在处理完成后调用系统看图程序。
-
-## 输出文件
-
-| 文件 | 含义 |
-| --- | --- |
-| `01_gray.png` | 中值滤波后的灰度图 |
-| `02_binary.png` | 原始阈值结果，白色为前景 |
-| `03_mask.png` | 闭运算并筛选后保留的目标 |
-| `04_result.png` | 原图叠加编号、边界框与总数 |
-| `objects.csv` | 每个目标的位置、尺寸、面积、质心、主轴比、角度；坐标从 0 开始 |
-| `summary.json` | 总数、图像尺寸、实际阈值、面积比例 |
-
-输出目录同名结果会被覆盖；程序拒绝让结果文件覆盖输入图片。正常结束返回 0，参数、输入或输出错误返回 1。
-
-## 使用范围
-
-这是针对浅色背景、深色且彼此分离的完整回形针的分割计数。它依据颜色和形状筛选目标，不是经过训练的通用物体类别识别器。接触或重叠目标可能合并，较大断裂可能拆分，靠边目标会被排除；复杂背景和相似杂物可能误检。当前样例的结果不能代表任意照片的准确率。
