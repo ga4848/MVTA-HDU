@@ -1,12 +1,5 @@
 # 圆心检测 — VS 2022 / C++17
-
-按照要求，检测样例图中 **4 个完整的小圆孔**。源码、VS 解决方案、可执行程序和结果均独立放在桌面的 `CircleCenterDetector` 文件夹。
-
-## 运行
-
-- 直接双击 `运行示例.cmd`，自动打开圆心标注图。
-- 或用 VS 2022 打开 `CircleCenterDetector.sln`，选 `Release | x64`，按 `Ctrl+F5`。
-- 无需 OpenCV 或 Python。编译需要“使用 C++ 的桌面开发”、v143 工具集和 Windows SDK；读取和绘制使用 Windows 自带 GDI+。
+检测样例图中 **4 个完整的小圆孔**。
 
 ## 样例结果
 
@@ -18,12 +11,6 @@
 | 2 | 467.115 | 339.735 | 23.936 | 0.383 |
 | 3 | 584.117 | 490.633 | 40.791 | 0.669 |
 | 4 | 768.237 | 544.557 | 23.696 | 0.426 |
-
-坐标原点为原图左上角，x 向右、y 向下。输出保留三位小数只是数值格式，不代表具有 0.001 像素测量精度。RMS 是边缘像素到拟合圆的径向残差，不是圆心真值误差；本图没有提供精密标定或人工测量真值。
-
-`output/04_result.png`：绿色拟合圆、红色圆心十字和编号。
-
-`output/objects.csv`：每个圆孔的边界框、前景面积、拟合圆心、半径、直径、拟合 RMS。`output/summary.json`：数量、尺寸及参数。`01_gray.png`、`02_binary.png`、`03_mask.png` 为滤波灰度、二值图和筛选后的孔区域。
 
 ## 方法
 
@@ -38,18 +25,3 @@
 得到圆心 `(x0+a,y0+b)`、半径 `sqrt(c+a²+b²)`，再计算径向 RMS，并排除 RMS 超过 `max(1.5 px, 0.06×半径)` 的区域。这里的质心仅用于数值平移，最终圆心来自边界拟合，不直接用质心或矩形框中心代替。
 
 此实现不使用霍夫变换，采用完整孔区域的边界圆拟合。对明显椭圆、强透视、粘连孔、缺口或复杂背景，当前规则可能漏检或误检。输出为图像像素坐标；若需机械平面上的物理坐标或尺寸，应另做镜头畸变、透视及尺度标定。
-
-## 更换图片
-
-修改 VS 项目属性 → 调试 → 命令参数，或在工程目录打开 PowerShell：
-
-```powershell
-.\bin\Release\CircleCenterDetector.exe "D:\图片\圆孔.jpg" "output_other" --show
-.\bin\Release\CircleCenterDetector.exe "images\sample.jpg" "output_manual" --threshold 127 --min-area-ratio 0.0006 --show
-```
-
-`--threshold` 为 0～255，省略则自动计算；`--min-area-ratio` 大于 0、小于 0.05。输入支持 PNG/JPEG/BMP 等系统 GDI+ 格式，含中文或空格路径加双引号。按图片存储像素处理，不应用 EXIF 方向。输出同名文件会覆盖，程序拒绝覆盖输入图片。
-
-## 验证
-
-本机 MSVC v143、Release x64 编译通过并实际运行。执行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1` 检查样例 4 孔、空白图为 0、已知圆心的合成图、截断孔和非圆杂物排除，以及无效输入和覆盖保护。合成圆心误差容限为 1 像素，半径容限为 1.5 像素，只用于验证计算流程，不代表真实照片的测量精度。
