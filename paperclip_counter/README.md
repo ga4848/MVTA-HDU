@@ -1,6 +1,6 @@
-# Visual Studio C++ 回形针识别计数
+# 回形针识别计数
 
-针对所给图片的传统机器视觉算法。使用 C++17 实现全部像素处理，Windows 自带 GDI+ 负责图片读取、绘制和保存，不需要安装 OpenCV、Python 或训练模型。
+传统机器视觉算法。使用 C++17 实现全部像素处理，Windows 自带 GDI+ 负责图片读取、绘制和保存。
 
 ## 在 VS 中运行
 
@@ -9,7 +9,7 @@
 3. 按 `Ctrl+F5`：项目已经配置样例输入、输出目录及自动显示结果图。
 4. `output/04_result.png` 显示每个目标的矩形框、编号和总数。
 
-当前电脑已具备编译环境。也可双击“运行示例.cmd”，或执行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1`。
+已具备编译环境。也可双击“运行示例.cmd”，或执行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1`。
 
 ## 更换图片
 
@@ -58,11 +58,3 @@
 ## 使用范围
 
 这是针对浅色背景、深色且彼此分离的完整回形针的分割计数。它依据颜色和形状筛选目标，不是经过训练的通用物体类别识别器。接触或重叠目标可能合并，较大断裂可能拆分，靠边目标会被排除；复杂背景和相似杂物可能误检。当前样例的结果不能代表任意照片的准确率。
-
-## 验证
-
-本机 VS 2022 / MSVC v143 Release x64 编译运行：样例 720×715，自动阈值 116，识别 13 个，与目视核对一致。逐框检查结果图，每个回形针对应一个框。
-
-运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1` 可复核样例计数、CSV 行数、空白图为 0、三个合成细长环加边框和灰尘为 3，以及缺失输入、非法参数和原图覆盖保护。合成图用于检查连通域及过滤逻辑，不是回形针泛化准确率测试。
-
-工程使用微软官方 GDI+ 接口：<https://learn.microsoft.com/en-us/windows/win32/api/gdiplusheaders/nf-gdiplusheaders-bitmap-fromfile>。
