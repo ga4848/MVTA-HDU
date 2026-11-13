@@ -1,0 +1,68 @@
+# Visual Studio C++ 回形针识别计数
+
+针对所给图片的传统机器视觉算法。使用 C++17 实现全部像素处理，Windows 自带 GDI+ 负责图片读取、绘制和保存，不需要安装 OpenCV、Python 或训练模型。
+
+## 在 VS 中运行
+
+1. 使用 Visual Studio 2022，安装“使用 C++ 的桌面开发”和 Windows 10/11 SDK。
+2. 打开 `PaperclipCounter.sln`，选择 `Release | x64`。
+3. 按 `Ctrl+F5`：项目已经配置样例输入、输出目录及自动显示结果图。
+4. `output/04_result.png` 显示每个目标的矩形框、编号和总数。
+
+当前电脑已具备编译环境。也可双击“运行示例.cmd”，或执行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1`。
+
+## 更换图片
+
+在项目属性 → 配置属性 → 调试 → 命令参数中填写图片路径和输出目录；路径含空格或中文时加双引号。或在 PowerShell 执行：
+
+```powershell
+.\bin\Release\PaperclipCounter.exe "images\sample.png" "output" --show
+.\bin\Release\PaperclipCounter.exe "D:\图片\待计数.jpg" "output_other" --show
+```
+
+输入支持 PNG、JPEG、BMP 等 GDI+ 支持的格式。命令行 `--help` 查看参数。图像按存储像素处理，不应用 EXIF 方向。无参数运行默认读取当前工作目录的 `images/sample.png`。
+
+## 算法与参数
+
+1. 转灰度：整数近似 `0.299 R + 0.587 G + 0.114 B`。
+2. 3×3 中值滤波：抑制孤立噪声并保留金属丝边缘。
+3. Otsu 自动阈值：遍历灰度直方图，最大化两类的类间方差；灰度 ≤ 阈值为前景。
+4. 3×3 闭运算：先膨胀后腐蚀，连接细小断裂。
+5. 八邻域连通域：同一回形针的金属丝作为一个前景区域；内部孔洞不重复计数。
+6. 排除靠近图边 2 像素的区域、过小区域、超过图像面积 15% 的区域及形状不够细长的区域。
+7. 用二阶中心矩特征值计算主轴长短比（默认 ≥ 1.5），输出矩形框、质心、像素面积及方向。
+
+默认最小前景像素面积为 `max(20, 图像面积 × 0.0006)`；面积只统计闭运算后的金属丝前景，不是外轮廓填充面积。中心是这些前景像素的质心。方向单位为度，x 轴向右、y 轴向下。编号按水平带自上而下、带内从左到右分配，仅用于查看。
+
+亮度或目标大小变化较大时可调整：
+
+```powershell
+.\bin\Release\PaperclipCounter.exe "images\sample.png" "output_manual" --threshold 100 --min-area-ratio 0.0006
+```
+
+`--threshold` 为 0～255，省略则自动计算。`--min-area-ratio` 是最小面积比例，取值大于 0 且小于 0.15。`--show` 在处理完成后调用系统看图程序。
+
+## 输出文件
+
+| 文件 | 含义 |
+| --- | --- |
+| `01_gray.png` | 中值滤波后的灰度图 |
+| `02_binary.png` | 原始阈值结果，白色为前景 |
+| `03_mask.png` | 闭运算并筛选后保留的目标 |
+| `04_result.png` | 原图叠加编号、边界框与总数 |
+| `objects.csv` | 每个目标的位置、尺寸、面积、质心、主轴比、角度；坐标从 0 开始 |
+| `summary.json` | 总数、图像尺寸、实际阈值、面积比例 |
+
+输出目录同名结果会被覆盖；程序拒绝让结果文件覆盖输入图片。正常结束返回 0，参数、输入或输出错误返回 1。
+
+## 使用范围
+
+这是针对浅色背景、深色且彼此分离的完整回形针的分割计数。它依据颜色和形状筛选目标，不是经过训练的通用物体类别识别器。接触或重叠目标可能合并，较大断裂可能拆分，靠边目标会被排除；复杂背景和相似杂物可能误检。当前样例的结果不能代表任意照片的准确率。
+
+## 验证
+
+本机 VS 2022 / MSVC v143 Release x64 编译运行：样例 720×715，自动阈值 116，识别 13 个，与目视核对一致。逐框检查结果图，每个回形针对应一个框。
+
+运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1` 可复核样例计数、CSV 行数、空白图为 0、三个合成细长环加边框和灰尘为 3，以及缺失输入、非法参数和原图覆盖保护。合成图用于检查连通域及过滤逻辑，不是回形针泛化准确率测试。
+
+工程使用微软官方 GDI+ 接口：<https://learn.microsoft.com/en-us/windows/win32/api/gdiplusheaders/nf-gdiplusheaders-bitmap-fromfile>。
