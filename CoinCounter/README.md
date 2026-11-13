@@ -1,22 +1,7 @@
-# 硬币识别计数 — Visual Studio C++
-
-本工程独立存放在桌面 `CoinCounter` 文件夹。使用 Visual Studio 2022、C++17、Windows SDK 和系统自带 GDI+；无需 OpenCV、Python 或模型权重。
-
-## 直接运行
-
-双击 `运行示例.cmd`，自动处理所给硬币照片并打开编号结果图。已附编译好的 `bin/Release/CoinCounter.exe`。
-
-## 在 Visual Studio 运行
-
-1. 打开 `CoinCounter.sln`。
-2. 选择 `Release | x64`，按 `Ctrl+F5`。
-3. 自动读取 `images/sample.jpg`，结果写入 `output`。
-
-编译环境为 VS 2022 的“使用 C++ 的桌面开发”工作负载和 Windows 10/11 SDK，工具集 v143。源码位于 `src/main.cpp`。也可运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1` 编译。
+# 硬币识别计数
 
 ## 识别结果
-
-所给照片尺寸为 691×572 像素，程序检测到 **10 枚硬币**。已逐个检查圆形标注，与目视计数一致。
+照片尺寸为 691×572 像素，程序检测到 **10 枚硬币**。已逐个检查圆形标注，与目视计数一致。
 
 | 输出 | 内容 |
 | --- | --- |
@@ -46,9 +31,3 @@ CSV 坐标从 0 开始；面积是填充后的前景像素数，直径为轴向�
 ```
 
 支持 PNG/JPEG/BMP 等 GDI+ 可读格式，中文和空格路径加双引号。无参数时相对于当前工作目录读取 `images/sample.jpg`。`--threshold` 为 0～255；`--min-area-ratio` 大于 0、小于 0.15；省略参数则采用默认值。`--show` 调用系统看图程序。重复运行覆盖输出目录中的同名结果，程序拒绝结果覆盖输入图片。
-
-## 验证与范围
-
-本机已用 VS 2022 / MSVC 编译并运行。执行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\verify.ps1` 可复核样例 10 枚、空白图 0、三枚合成圆形含暗币及内部孔洞为 3、方形/细长杂物排除、错误输入和覆盖保护。合成测试验证处理逻辑，不用于估计真实照片准确率。
-
-当前实现是暗背景中彼此分离的亮色近圆物体分割计数，不区分面额、币种或真伪，也不计算金额。相连、重叠、背景较亮、强反光、透视严重或相似圆形杂物可能导致误检或漏检；只有本张真实照片经过逐枚核对。
